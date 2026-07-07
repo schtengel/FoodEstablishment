@@ -17,4 +17,17 @@ public class SqlCategoryRepository(ApplicationDbContext context) : ICategoryRepo
         await context.Categories.AddAsync(category);
         await context.SaveChangesAsync();
     }
+    
+    public async Task<Category?> GetByIdAsync(int id)
+    {
+        return await context.Categories.FirstOrDefaultAsync(s => s.Id == id);
+    }
+
+    public async Task UpdateAsync(Category category)
+    {
+        category.UpdatedAt = DateTime.UtcNow;
+        
+        context.Categories.Update(category);
+        await context.SaveChangesAsync();
+    }
 }

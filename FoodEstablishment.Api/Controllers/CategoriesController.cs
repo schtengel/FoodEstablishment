@@ -49,4 +49,36 @@ public class CategoriesController(ICategoryRepository categoryRepository) : Cont
         
         return CreatedAtAction(nameof(GetAll), new { id = response.Id }, response);
     }
+    
+    [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(int id, [FromBody] CategoryCreateRequest request)
+    {
+        var existingCategory = await _categoryRepository.GetByIdAsync(id);
+        if (existingCategory == null) return NotFound();
+        
+        existingCategory.Name = request.Name;
+        existingCategory.Description = request.Description;
+        
+        await _categoryRepository.UpdateAsync(existingCategory);
+        
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var existingCategory = await _categoryRepository.GetByIdAsync(id);
+        if (existingCategory == null) return NotFound();
+
+        existingCategory.IsDeleted = true;
+        
+        await _categoryRepository.UpdateAsync(existingCategory);
+        
+        return NoContent();
+    }
 }
