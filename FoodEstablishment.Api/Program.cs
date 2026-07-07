@@ -14,6 +14,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<ICategoryRepository, SqlCategoryRepository>();
+builder.Services.AddScoped<IStorageZoneRepository, SqlStorageZoneRepository>();
 
 builder.Services.AddOpenApi();
 
