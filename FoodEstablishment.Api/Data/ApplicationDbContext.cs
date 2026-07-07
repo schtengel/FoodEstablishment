@@ -46,16 +46,11 @@ public class ApplicationDbContext : DbContext
                 property.SetColumnName(property.Name.ToLower());
             }
 
-            if (typeof(BaseEntity).IsAssignableFrom(entity.ClrType))
-            {
-                var parameter = Expression.Parameter(entity.ClrType, "e");
-                var propertyAccess = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
-                var falseConstant = Expression.Constant(false);
-                var isNotDeletedExpression = Expression.NotEqual(propertyAccess, falseConstant);
-                var lambda = Expression.Lambda(isNotDeletedExpression, parameter);
-                
-                modelBuilder.Entity(entity.ClrType).HasQueryFilter(lambda);
-            }
+            modelBuilder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
+            modelBuilder.Entity<OrderStatus>().HasQueryFilter(x => !x.IsDeleted);
+            modelBuilder.Entity<PaymentStatus>().HasQueryFilter(x => !x.IsDeleted);
+            modelBuilder.Entity<StorageZone>().HasQueryFilter(x => !x.IsDeleted);
+            
         }
     }
 }
