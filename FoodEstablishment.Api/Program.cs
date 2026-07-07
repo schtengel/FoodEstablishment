@@ -20,6 +20,18 @@ builder.Services.AddOpenApi();
 // Все зависимости регистрируем до вызова
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("openapi/v1.json", "FoodEstablishment API v1");
+        
+        options.RoutePrefix = string.Empty;
+    });
+}
+
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.MapControllers();
