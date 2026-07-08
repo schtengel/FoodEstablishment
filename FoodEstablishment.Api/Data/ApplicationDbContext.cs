@@ -10,11 +10,11 @@ public class ApplicationDbContext : DbContext
     {
         
     }
-
-    public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<OrderStatus> OrderStatuses { get; set; } = null!;
     public DbSet<PaymentStatus> PaymentStatuses { get; set; } = null!;
+    public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<StorageZone> StorageZones { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -50,6 +50,7 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<OrderStatus>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<PaymentStatus>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<StorageZone>().HasQueryFilter(x => !x.IsDeleted);
+            modelBuilder.Entity<Product>().HasQueryFilter(x => !x.IsDeleted);
             
         }
     }
