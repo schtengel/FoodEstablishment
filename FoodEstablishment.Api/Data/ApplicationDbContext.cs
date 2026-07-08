@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     }
     public DbSet<OrderStatus> OrderStatuses { get; set; } = null!;
     public DbSet<PaymentStatus> PaymentStatuses { get; set; } = null!;
+    public DbSet<OrderSource> OrderSources { get; set; } = null!;
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<StorageZone> StorageZones { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
@@ -49,6 +50,7 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<OrderStatus>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<PaymentStatus>().HasQueryFilter(x => !x.IsDeleted);
+            modelBuilder.Entity<OrderSource>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<StorageZone>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Product>().HasQueryFilter(x => !x.IsDeleted);
         }
@@ -68,6 +70,14 @@ public class ApplicationDbContext : DbContext
             new PaymentStatus { Id = 3, Name = "Оплачен", CreatedAt = seedDate},
             new PaymentStatus { Id = 4, Name = "Недостаточно средств", CreatedAt = seedDate},
             new PaymentStatus { Id = 5, Name = "Отменен", CreatedAt = seedDate}
+        );
+
+        modelBuilder.Entity<OrderSource>().HasData(
+            new OrderSource { Id = 1, Name = "Мобильное приложение", CreatedAt = seedDate},
+            new OrderSource { Id = 2, Name = "Терминал самообслуживания", CreatedAt = seedDate},
+            new OrderSource { Id = 3, Name = "Касса", CreatedAt = seedDate},
+            new OrderSource { Id = 4, Name = "Веб-сайт", CreatedAt = seedDate},
+            new OrderSource { Id = 5, Name = "Другое", CreatedAt = seedDate}
         );
     }
 }
