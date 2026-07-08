@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<StorageZone> StorageZones { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<Ingredient> Ingredients { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -46,6 +47,12 @@ public class ApplicationDbContext : DbContext
             {
                 property.SetColumnName(property.Name.ToLower());
             }
+            
+            modelBuilder.Entity<Ingredient>()
+                .HasOne(x => x.StorageZone)
+                .WithMany(x => x.Ingredients)
+                .HasForeignKey(x => x.StorageZoneId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<OrderStatus>().HasQueryFilter(x => !x.IsDeleted);
@@ -53,6 +60,7 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<OrderSource>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<StorageZone>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Product>().HasQueryFilter(x => !x.IsDeleted);
+            modelBuilder.Entity<Ingredient>().HasQueryFilter(x => !x.IsDeleted);
         }
         
         var seedDate = new  DateTime(2026, 7, 7, 0, 0, 0, DateTimeKind.Utc);
