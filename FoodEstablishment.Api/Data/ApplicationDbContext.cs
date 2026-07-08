@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FoodEstablishment.Api.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    {
-        
-    }
     public DbSet<OrderStatus> OrderStatuses { get; set; } = null!;
     public DbSet<PaymentStatus> PaymentStatuses { get; set; } = null!;
     public DbSet<OrderSource> OrderSources { get; set; } = null!;
