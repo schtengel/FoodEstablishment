@@ -30,6 +30,7 @@ builder.Services.AddSingleton<TokenService>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductCreateRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CategoryCreateRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<StorageZoneCreateRequestValidator>();
 
 var jwtSecret = builder.Configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret is missing");
 builder.Services.AddAuthentication(options =>
