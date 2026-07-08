@@ -1,5 +1,8 @@
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using FoodEstablishment.Api.Data;
+using FoodEstablishment.Api.DTOs.Validators;
 using FoodEstablishment.Api.Repositories;
 using FoodEstablishment.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,6 +26,9 @@ builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
 builder.Services.AddScoped<IUserRepository, SqlUserRepository>();
 
 builder.Services.AddSingleton<TokenService>();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<ProductCreateRequestValidator>();
 
 var jwtSecret = builder.Configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret is missing");
 builder.Services.AddAuthentication(options =>
