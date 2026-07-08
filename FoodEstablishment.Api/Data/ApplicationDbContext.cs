@@ -51,7 +51,23 @@ public class ApplicationDbContext : DbContext
             modelBuilder.Entity<PaymentStatus>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<StorageZone>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Product>().HasQueryFilter(x => !x.IsDeleted);
-            
         }
+        
+        var seedDate = new  DateTime(2026, 7, 7, 0, 0, 0, DateTimeKind.Utc);
+
+        modelBuilder.Entity<OrderStatus>().HasData(
+            new OrderStatus { Id = 1, Name = "Создан", CreatedAt = seedDate},
+            new OrderStatus { Id = 2, Name = "В процессе", CreatedAt = seedDate},
+            new OrderStatus { Id = 3, Name = "Готов", CreatedAt = seedDate},
+            new OrderStatus { Id = 4, Name = "Отменен", CreatedAt = seedDate}
+        );
+
+        modelBuilder.Entity<PaymentStatus>().HasData(
+            new PaymentStatus { Id = 1, Name = "Создан", CreatedAt = seedDate},
+            new PaymentStatus { Id = 2, Name = "В процессе оплаты", CreatedAt = seedDate},
+            new PaymentStatus { Id = 3, Name = "Оплачен", CreatedAt = seedDate},
+            new PaymentStatus { Id = 4, Name = "Недостаточно средств", CreatedAt = seedDate},
+            new PaymentStatus { Id = 5, Name = "Отменен", CreatedAt = seedDate}
+        );
     }
 }
