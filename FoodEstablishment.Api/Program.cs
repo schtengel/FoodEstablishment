@@ -24,6 +24,7 @@ builder.Services.AddScoped<ICategoryRepository, SqlCategoryRepository>();
 builder.Services.AddScoped<IStorageZoneRepository, SqlStorageZoneRepository>();
 builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
 builder.Services.AddScoped<IUserRepository, SqlUserRepository>();
+builder.Services.AddScoped<IIngredientRepository, SqlIngredientRepository>();
 
 builder.Services.AddSingleton<TokenService>();
 
