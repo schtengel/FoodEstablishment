@@ -67,7 +67,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new OrderStatus { Id = 1, Name = "Создан", CreatedAt = seedDate},
             new OrderStatus { Id = 2, Name = "В процессе", CreatedAt = seedDate},
             new OrderStatus { Id = 3, Name = "Готов", CreatedAt = seedDate},
-            new OrderStatus { Id = 4, Name = "Отменен", CreatedAt = seedDate}
+            new OrderStatus { Id = 4, Name = "Отменен", CreatedAt = seedDate},
+            new OrderStatus { Id = 5, Name = "Отдан", CreatedAt = seedDate}
         );
 
         modelBuilder.Entity<PaymentStatus>().HasData(
