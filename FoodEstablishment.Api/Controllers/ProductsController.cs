@@ -7,9 +7,10 @@ namespace FoodEstablishment.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class ProductsController(IProductRepository productRepository) : ControllerBase
+public class ProductsController(IProductRepository productRepository, ICategoryRepository categoryRepository) : ControllerBase
 {
     private readonly IProductRepository _productRepository = productRepository;
+    private readonly ICategoryRepository _categoryRepository = categoryRepository;
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProductResponse>))]
@@ -62,6 +63,10 @@ public class ProductsController(IProductRepository productRepository) : Controll
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ProductCreateRequest request)
     {
+        var category = await _categoryRepository.GetByIdAsync(request.CategoryId);
+        if (category == null) 
+            return NotFound($"Категория с Id = {request.CategoryId} не найдена.");
+        
         var newProduct = new Product
         {
             Name = request.Name,
@@ -100,6 +105,10 @@ public class ProductsController(IProductRepository productRepository) : Controll
     {
         var existingProduct = await _productRepository.GetByIdAsync(id);
         if (existingProduct == null) return NotFound();
+        
+        var category = await _categoryRepository.GetByIdAsync(request.CategoryId);
+        if (category == null) 
+            return NotFound($"Категория с Id = {request.CategoryId} не найдена.");
         
         existingProduct.Name = request.Name;
         existingProduct.Description = request.Description;
