@@ -18,4 +18,6 @@ public class Product : BaseEntity
 
     public int CategoryId { get; set; }
     public Category Category { get; set; } = null!;
+    
+    public ICollection<ProductComposition> ProductCompositions { get; set; } = new List<ProductComposition>();
 }

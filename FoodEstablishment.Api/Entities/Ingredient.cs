@@ -12,4 +12,6 @@ public class Ingredient : BaseEntity
     
     public int StorageZoneId { get; set; }
     public StorageZone StorageZone { get; set; } = null!;
+    
+    public ICollection<ProductComposition> ProductCompositions { get; set; } = new List<ProductComposition>();
 }

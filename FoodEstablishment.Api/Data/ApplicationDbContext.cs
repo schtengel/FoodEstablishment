@@ -14,6 +14,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<Ingredient> Ingredients { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<ProductComposition> ProductCompositions { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -54,6 +55,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(x => x.StorageZone)
             .WithMany(x => x.Ingredients)
             .HasForeignKey(x => x.StorageZoneId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<ProductComposition>()
+            .HasKey(x => new { x.ProductId, x.IngredientId });
+        
+        modelBuilder.Entity<ProductComposition>()
+            .HasOne(x => x.Product)
+            .WithMany(x => x.ProductCompositions)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<ProductComposition>()
+            .HasOne(x => x.Ingredient)
+            .WithMany(x => x.ProductCompositions)
+            .HasForeignKey(x => x.IngredientId)
             .OnDelete(DeleteBehavior.Restrict);
         
         modelBuilder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
