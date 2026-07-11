@@ -33,6 +33,30 @@ public class ProductsController(IProductRepository productRepository) : Controll
         return Ok(response);
     }
 
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var product = await _productRepository.GetByIdAsync(id);
+        if (product == null) return NotFound();
+
+        var response = new ProductResponse
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Calories = product.Calories,
+            CategoryId = product.CategoryId,
+            Description = product.Description,
+            IsStopListed = product.IsStopListed,
+            Price = product.Price,
+            Unit = product.Unit.ToString(),
+            VolumeOrWeight = product.VolumeOrWeight
+        };
+        
+        return Ok(response);
+    }
+
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ProductResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -65,7 +89,7 @@ public class ProductsController(IProductRepository productRepository) : Controll
             VolumeOrWeight = newProduct.VolumeOrWeight
         };
         
-        return CreatedAtAction(nameof(GetAll), new { id = response.Id }, response);
+        return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
     
     [HttpPut("{id}")]
