@@ -12,6 +12,9 @@ public class SqlUserRepository(ApplicationDbContext context) : IUserRepository
     public async Task<User?> GetByPhoneNumberAsync(string phoneNumber) =>
         await context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
 
+    public async Task<User?> GetByDeviceIdAsync(string deviceId) => 
+        await context.Users.FirstOrDefaultAsync(u => u.DeviceId == deviceId);
+    
     public async Task AddAsync(User user)
     {
         await context.Users.AddAsync(user);

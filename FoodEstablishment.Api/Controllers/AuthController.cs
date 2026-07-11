@@ -1,5 +1,6 @@
 using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Entities;
+using FoodEstablishment.Api.Enums;
 using FoodEstablishment.Api.Repositories;
 using FoodEstablishment.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -97,5 +98,30 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
 
         var token = _tokenService.GenerateToken(user);
         return Ok(new AuthResponse { Token = token, Username = user.Username, BonusPoints = user.BonusPoints });
+    }
+
+    [HttpPost("guest-session")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
+    public async Task<IActionResult> GuestSession([FromBody] GuestSessionRequest request)
+    {
+        var guest = await _userRepository.GetByDeviceIdAsync(request.DeviceId);
+
+        if (guest == null)
+        {
+            guest = new User
+            {
+                Username = $"Guest-{request.DeviceId[..Math.Min(8, request.DeviceId.Length)]}",
+                PhoneNumber = null,
+                PasswordHash = null,
+                BonusPoints = 0,
+                DeviceId = request.DeviceId,
+                Role = UserRoleType.Guest
+            };
+            
+            await _userRepository.AddAsync(guest);
+        }
+        
+        var token = _tokenService.GenerateToken(guest);
+        return Ok(new AuthResponse{ Token = token, Username = guest.Username, BonusPoints = guest.BonusPoints });
     }
 }

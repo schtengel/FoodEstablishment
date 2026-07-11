@@ -1,0 +1,13 @@
+using FluentValidation;
+
+namespace FoodEstablishment.Api.DTOs.Validators;
+
+public class GuestSessionRequestValidator : AbstractValidator<GuestSessionRequest>
+{
+    public  GuestSessionRequestValidator()
+    {
+        RuleFor(x => x.DeviceId)
+            .NotEmpty().WithMessage("Идентификатор устройства обязателен")
+            .Length(10, 100).WithMessage("Некорректный идентификатор устройства");
+    }
+}
