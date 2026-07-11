@@ -12,7 +12,7 @@ public class User : BaseEntity
     public string? VerificationCode { get; set; }
     public DateTime? VerificationCodeExpiresAt { get; set; }
 
-    public UserRole Role { get; set; } = UserRole.Client;
+    public UserRoleType Role { get; set; } = UserRoleType.Client;
     
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 
