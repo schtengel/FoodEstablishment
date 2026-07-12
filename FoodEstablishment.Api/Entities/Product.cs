@@ -20,4 +20,5 @@ public class Product : BaseEntity
     public Category Category { get; set; } = null!;
     
     public ICollection<ProductComposition> ProductCompositions { get; set; } = new List<ProductComposition>();
+    public ICollection<OrderComposition> OrderCompositions { get; set; } = new List<OrderComposition>();
 }

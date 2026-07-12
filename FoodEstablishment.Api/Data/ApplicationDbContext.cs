@@ -15,6 +15,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Ingredient> Ingredients { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<ProductComposition> ProductCompositions { get; set; } = null!;
+    public DbSet<Order> Orders { get; set; } = null!;
+    public DbSet<OrderComposition> OrderCompositions { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -72,6 +74,39 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(x => x.IngredientId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.User)
+            .WithMany(u => u.Orders)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.OrderSource)
+            .WithMany()
+            .HasForeignKey(x => x.OrderSourceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.OrderStatus)
+            .WithMany()
+            .HasForeignKey(x => x.OrderStatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<OrderComposition>()
+            .HasKey(x => new { x.OrderId, x.ProductId });
+
+        modelBuilder.Entity<OrderComposition>()
+            .HasOne(x => x.Order)
+            .WithMany(o => o.OrderCompositions)
+            .HasForeignKey(x => x.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OrderComposition>()
+            .HasOne(x => x.Product)
+            .WithMany(p => p.OrderCompositions)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
         modelBuilder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<OrderStatus>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<PaymentStatus>().HasQueryFilter(x => !x.IsDeleted);
@@ -80,6 +115,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Product>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Ingredient>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
+        modelBuilder.Entity<Order>().HasQueryFilter(x => !x.IsDeleted);
         
         var seedDate = new  DateTime(2026, 7, 7, 0, 0, 0, DateTimeKind.Utc);
 
