@@ -1,0 +1,91 @@
+using FoodEstablishment.Api.DTOs;
+using FoodEstablishment.Api.Entities;
+using FoodEstablishment.Api.Enums;
+using FoodEstablishment.Api.Repositories;
+using Microsoft.AspNetCore.Mvc;
+
+namespace FoodEstablishment.Api.Controllers;
+
+[ApiController]
+[Route("api/v1/[controller]")]
+public class OrdersController(
+    IOrderRepository orderRepository,
+    IUserRepository userRepository,
+    IProductRepository productRepository) : ControllerBase
+{
+    private readonly IOrderRepository _orderRepository =  orderRepository;
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IProductRepository _productRepository =  productRepository;
+
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null) return NotFound();
+        
+        return Ok(MapToResponse(order));
+    }
+    
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(OrderResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Create([FromBody] OrderCreateRequest request)
+    {
+        var user = await _userRepository.GetByIdAsync(request.UserId);
+        if (user == null)
+            return NotFound($"Пользователь с Id = {request.UserId} не найден.");
+
+        if (!await _orderRepository.OrderSourceExistsAsync(request.OrderSourceId))
+            return NotFound($"Источник заказа с Id = {request.OrderSourceId} не найден.");
+
+        var compositions = new List<OrderComposition>();
+
+        foreach (var item in request.Items)
+        {
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            if (product == null)
+                return NotFound($"Продукт с Id = {item.ProductId} не найден.");
+
+            if (product.IsStopListed)
+                return BadRequest($"Продукт \"{product.Name}\" сейчас недоступен для заказа (стоп-лист).");
+
+            compositions.Add(new OrderComposition
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                PriceAtOrderTime = product.Price
+            });
+        }
+
+        var order = new Order
+        {
+            UserId = request.UserId,
+            OrderSourceId = request.OrderSourceId,
+            OrderStatusId = (int)OrderStatusType.Created,
+            OrderCompositions = compositions
+        };
+
+        await _orderRepository.AddAsync(order);
+
+        return CreatedAtAction(nameof(GetById), new { id = order.Id }, MapToResponse(order));
+    }
+
+
+    private static OrderResponse MapToResponse(Order order) => new()
+    {
+        Id = order.Id,
+        UserId = order.UserId,
+        OrderSourceId = order.OrderSourceId,
+        OrderStatusId = order.OrderStatusId,
+        CreatedAt = order.CreatedAt,
+        Items = order.OrderCompositions.Select(oc => new OrderCompositionResponse
+        {
+            ProductId = oc.ProductId,
+            Quantity = oc.Quantity,
+            PriceAtOrderTime = oc.PriceAtOrderTime
+        }).ToList()
+    };
+}
