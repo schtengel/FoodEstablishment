@@ -108,7 +108,7 @@ public class ProductCompositionsController(IProductCompositionRepository composi
     }
 
     [HttpDelete("{productId}/{ingredientId}")]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int productId, int ingredientId)

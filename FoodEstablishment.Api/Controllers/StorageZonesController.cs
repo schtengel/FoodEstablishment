@@ -28,6 +28,22 @@ public class StorageZonesController(IStorageZoneRepository storageZoneRepository
         return Ok(response);
     }
 
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(StorageZoneResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var storageZone = await _storageZoneRepository.GetByIdAsync(id);
+        if (storageZone == null) return NotFound();
+
+        return Ok(new StorageZoneResponse
+        {
+            Id = storageZone.Id,
+            Name = storageZone.Name,
+            RecommendedTemperature = storageZone.RecommendedTemperature
+        });
+    }
+
     [HttpPost]
     [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(StorageZoneResponse))]
@@ -50,7 +66,7 @@ public class StorageZonesController(IStorageZoneRepository storageZoneRepository
             RecommendedTemperature = newStorageZone.RecommendedTemperature
         };
         
-        return CreatedAtAction(nameof(GetAll), new { id = response.Id }, response);
+        return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
 
     [HttpPut("{id}")]
@@ -72,7 +88,7 @@ public class StorageZonesController(IStorageZoneRepository storageZoneRepository
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

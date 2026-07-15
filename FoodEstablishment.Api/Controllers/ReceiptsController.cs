@@ -29,7 +29,7 @@ public class ReceiptsController(
 
         var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
         if (!isPrivileged && order.UserId != User.GetUserId())
-            return Forbid();
+            return NotFound($"Заказ с Id = {orderId} не найден.");
 
         var existingReceipts = await _receiptRepository.GetByOrderIdAsync(orderId);
         if (existingReceipts.Any(r => r.PaymentStatusId == (int)PaymentStatusType.Paid))
@@ -57,12 +57,13 @@ public class ReceiptsController(
 
         var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
         if (!isPrivileged && receipt.Order.UserId != User.GetUserId())
-            return Forbid();
+            return NotFound();
 
         return Ok(MapToResponse(receipt, receipt.Order));
     }
 
     [HttpPatch("Receipts/{id}/status")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

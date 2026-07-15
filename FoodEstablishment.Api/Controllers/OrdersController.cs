@@ -21,7 +21,7 @@ public class OrdersController(
     private readonly IProductRepository _productRepository =  productRepository;
 
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(OrderResponse))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
@@ -30,7 +30,7 @@ public class OrdersController(
 
         var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
         if (!isPrivileged && order.UserId != User.GetUserId())
-            return Forbid();
+            return NotFound();
 
         return Ok(MapToResponse(order));
     }
@@ -87,7 +87,6 @@ public class OrdersController(
         await _orderRepository.AddAsync(order);
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, MapToResponse(order));
     }
-
 
     private static OrderResponse MapToResponse(Order order) => new()
     {

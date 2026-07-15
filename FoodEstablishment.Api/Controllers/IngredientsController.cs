@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FoodEstablishment.Api.Controllers;
 
-
 [ApiController]
 [Route("api/v1/[controller]")]
 public class IngredientsController(IIngredientRepository ingredientRepository, 
@@ -86,7 +85,7 @@ public class IngredientsController(IIngredientRepository ingredientRepository,
         return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
 
-    [HttpPut("id")]
+    [HttpPut("{id}")]
     [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -111,7 +110,7 @@ public class IngredientsController(IIngredientRepository ingredientRepository,
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

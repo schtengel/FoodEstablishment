@@ -28,6 +28,22 @@ public class CategoriesController(ICategoryRepository categoryRepository) : Cont
         return Ok(response);
     }
 
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CategoryResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var category = await _categoryRepository.GetByIdAsync(id);
+        if (category == null) return NotFound();
+
+        return Ok(new CategoryResponse
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description
+        });
+    }
+
     [HttpPost]
     [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CategoryResponse))]
@@ -49,7 +65,7 @@ public class CategoriesController(ICategoryRepository categoryRepository) : Cont
             Description = newCategory.Description
         };
         
-        return CreatedAtAction(nameof(GetAll), new { id = response.Id }, response);
+        return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
     }
     
     [HttpPut("{id}")]
@@ -71,7 +87,7 @@ public class CategoriesController(ICategoryRepository categoryRepository) : Cont
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
