@@ -9,4 +9,5 @@ public class OrderResponse
     public DateTime CreatedAt { get; set; }
 
     public List<OrderCompositionResponse> Items { get; set; } = new();
+    public List<ReceiptResponse> Receipts { get; set; } = new();
 }

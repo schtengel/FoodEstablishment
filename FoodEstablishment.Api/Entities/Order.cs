@@ -12,4 +12,5 @@ public class Order : BaseEntity
     public OrderStatus OrderStatus { get; set; } = null!;
 
     public ICollection<OrderComposition> OrderCompositions { get; set; } = new List<OrderComposition>();
+    public ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
 }

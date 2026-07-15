@@ -59,15 +59,23 @@ public class OrdersController(
                 PriceAtOrderTime = product.Price
             });
         }
-
+        
         var order = new Order
         {
             UserId = request.UserId,
             OrderSourceId = request.OrderSourceId,
             OrderStatusId = (int)OrderStatusType.Created,
-            OrderCompositions = compositions
+            OrderCompositions = compositions,
+            Receipts = new List<Receipt>
+            {
+                new Receipt
+                {
+                    PaymentStatusId = (int)PaymentStatusType.Created,
+                    PaymentMethod = request.PaymentMethod
+                }
+            }
         };
-
+        
         await _orderRepository.AddAsync(order);
 
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, MapToResponse(order));
@@ -86,6 +94,16 @@ public class OrdersController(
             ProductId = oc.ProductId,
             Quantity = oc.Quantity,
             PriceAtOrderTime = oc.PriceAtOrderTime
+        }).ToList(),
+        Receipts = order.Receipts.Select(r => new ReceiptResponse
+        {
+            Id = r.Id,
+            OrderId = r.OrderId,
+            PaymentStatusId = r.PaymentStatusId,
+            PaymentMethod = r.PaymentMethod.ToString(),
+            TotalAmount = order.OrderCompositions.Sum(oc => oc.Quantity * oc.PriceAtOrderTime),
+            PaidAt = r.PaidAt,
+            CreatedAt = r.CreatedAt
         }).ToList()
     };
 }

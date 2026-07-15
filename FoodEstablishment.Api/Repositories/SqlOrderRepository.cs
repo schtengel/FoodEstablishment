@@ -10,6 +10,7 @@ public class SqlOrderRepository(ApplicationDbContext context) : IOrderRepository
     {
         return await context.Orders
             .Include(o => o.OrderCompositions)
+            .Include(o => o.Receipts)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 

@@ -17,5 +17,8 @@ public class OrderCreateRequestValidator : AbstractValidator<OrderCreateRequest>
 
         RuleForEach(x => x.Items)
             .SetValidator(new OrderItemCreateRequestValidator());
+        
+        RuleFor(x => x.PaymentMethod)
+            .IsInEnum().WithMessage("Указан некорректный способ оплаты.");
     }
 }

@@ -17,6 +17,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<ProductComposition> ProductCompositions { get; set; } = null!;
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<OrderComposition> OrderCompositions { get; set; } = null!;
+    public DbSet<Receipt> Receipts { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -107,6 +108,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(x => x.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        modelBuilder.Entity<Receipt>()
+            .HasOne(x => x.Order)
+            .WithMany(o => o.Receipts)
+            .HasForeignKey(x => x.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Receipt>()
+            .HasOne(x => x.PaymentStatus)
+            .WithMany()
+            .HasForeignKey(x => x.PaymentStatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<OrderStatus>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<PaymentStatus>().HasQueryFilter(x => !x.IsDeleted);
@@ -116,6 +129,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Ingredient>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Order>().HasQueryFilter(x => !x.IsDeleted);
+        modelBuilder.Entity<Receipt>().HasQueryFilter(x => !x.IsDeleted);
         
         var seedDate = new  DateTime(2026, 7, 7, 0, 0, 0, DateTimeKind.Utc);
 
