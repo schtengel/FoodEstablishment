@@ -1,6 +1,7 @@
 using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Entities;
 using FoodEstablishment.Api.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodEstablishment.Api.Controllers;
@@ -59,6 +60,7 @@ public class ProductsController(IProductRepository productRepository, ICategoryR
     }
 
     [HttpPost]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ProductResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] ProductCreateRequest request)
@@ -98,6 +100,7 @@ public class ProductsController(IProductRepository productRepository, ICategoryR
     }
     
     [HttpPut("{id}")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -125,6 +128,7 @@ public class ProductsController(IProductRepository productRepository, ICategoryR
     }
     
     [HttpPatch("{id}/toggle-stop-list")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleStopList(int id)
@@ -140,6 +144,7 @@ public class ProductsController(IProductRepository productRepository, ICategoryR
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

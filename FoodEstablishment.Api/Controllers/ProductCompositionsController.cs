@@ -1,6 +1,7 @@
 using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Entities;
 using FoodEstablishment.Api.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodEstablishment.Api.Controllers;
@@ -47,6 +48,7 @@ public class ProductCompositionsController(IProductCompositionRepository composi
     }
 
     [HttpPost]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ProductCompositionResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -87,6 +89,7 @@ public class ProductCompositionsController(IProductCompositionRepository composi
     }
 
     [HttpPut("{productId}/{ingredientId}")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -105,6 +108,7 @@ public class ProductCompositionsController(IProductCompositionRepository composi
     }
 
     [HttpDelete("{productId}/{ingredientId}")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int productId, int ingredientId)

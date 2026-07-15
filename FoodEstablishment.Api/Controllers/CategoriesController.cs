@@ -1,6 +1,7 @@
 using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Entities;
 using FoodEstablishment.Api.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodEstablishment.Api.Controllers;
@@ -28,6 +29,7 @@ public class CategoriesController(ICategoryRepository categoryRepository) : Cont
     }
 
     [HttpPost]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CategoryResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CategoryCreateRequest request)
@@ -51,6 +53,7 @@ public class CategoriesController(ICategoryRepository categoryRepository) : Cont
     }
     
     [HttpPut("{id}")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -68,6 +71,7 @@ public class CategoriesController(ICategoryRepository categoryRepository) : Cont
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

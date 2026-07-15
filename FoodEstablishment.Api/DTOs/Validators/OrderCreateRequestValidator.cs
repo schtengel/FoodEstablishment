@@ -6,8 +6,6 @@ public class OrderCreateRequestValidator : AbstractValidator<OrderCreateRequest>
 {
     public OrderCreateRequestValidator()
     {
-        RuleFor(x => x.UserId)
-            .GreaterThan(0).WithMessage("Необходимо указать пользователя.");
 
         RuleFor(x => x.OrderSourceId)
             .GreaterThan(0).WithMessage("Необходимо указать источник заказа.");

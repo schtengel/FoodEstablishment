@@ -1,13 +1,16 @@
 using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Entities;
 using FoodEstablishment.Api.Enums;
+using FoodEstablishment.Api.Extensions;
 using FoodEstablishment.Api.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodEstablishment.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
+[Authorize]
 public class OrdersController(
     IOrderRepository orderRepository,
     IUserRepository userRepository,
@@ -18,13 +21,17 @@ public class OrdersController(
     private readonly IProductRepository _productRepository =  productRepository;
 
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderResponse))]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(OrderResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
         var order = await _orderRepository.GetByIdAsync(id);
         if (order == null) return NotFound();
-        
+
+        var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
+        if (!isPrivileged && order.UserId != User.GetUserId())
+            return Forbid();
+
         return Ok(MapToResponse(order));
     }
     
@@ -34,9 +41,10 @@ public class OrdersController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create([FromBody] OrderCreateRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(request.UserId);
+        var userId = User.GetUserId();
+        var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
-            return NotFound($"Пользователь с Id = {request.UserId} не найден.");
+            return NotFound("Пользователь не найден.");
 
         if (!await _orderRepository.OrderSourceExistsAsync(request.OrderSourceId))
             return NotFound($"Источник заказа с Id = {request.OrderSourceId} не найден.");
@@ -62,7 +70,7 @@ public class OrdersController(
         
         var order = new Order
         {
-            UserId = request.UserId,
+            UserId = userId,
             OrderSourceId = request.OrderSourceId,
             OrderStatusId = (int)OrderStatusType.Created,
             OrderCompositions = compositions,
@@ -77,7 +85,6 @@ public class OrdersController(
         };
         
         await _orderRepository.AddAsync(order);
-
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, MapToResponse(order));
     }
 

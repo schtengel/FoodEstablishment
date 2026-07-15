@@ -1,13 +1,16 @@
 using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Entities;
 using FoodEstablishment.Api.Enums;
+using FoodEstablishment.Api.Extensions;
 using FoodEstablishment.Api.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodEstablishment.Api.Controllers;
 
 [ApiController]
 [Route("api/v1")]
+[Authorize]
 public class ReceiptsController(
     IReceiptRepository receiptRepository,
     IOrderRepository orderRepository) : ControllerBase
@@ -23,6 +26,10 @@ public class ReceiptsController(
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
         if (order == null) return NotFound($"Заказ с Id = {orderId} не найден.");
+
+        var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
+        if (!isPrivileged && order.UserId != User.GetUserId())
+            return Forbid();
 
         var existingReceipts = await _receiptRepository.GetByOrderIdAsync(orderId);
         if (existingReceipts.Any(r => r.PaymentStatusId == (int)PaymentStatusType.Paid))
@@ -47,6 +54,10 @@ public class ReceiptsController(
     {
         var receipt = await _receiptRepository.GetByIdAsync(id);
         if (receipt == null) return NotFound();
+
+        var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
+        if (!isPrivileged && receipt.Order.UserId != User.GetUserId())
+            return Forbid();
 
         return Ok(MapToResponse(receipt, receipt.Order));
     }
