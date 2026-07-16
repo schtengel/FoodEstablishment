@@ -30,6 +30,7 @@ builder.Services.AddScoped<IOrderRepository, SqlOrderRepository>();
 builder.Services.AddScoped<IReceiptRepository, SqlReceiptRepository>();
 
 builder.Services.AddSingleton<TokenService>();
+builder.Services.AddHostedService<OrderAutoCancellationService>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductCreateRequestValidator>();
