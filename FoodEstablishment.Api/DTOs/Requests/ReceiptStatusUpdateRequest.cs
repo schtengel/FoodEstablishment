@@ -2,7 +2,7 @@ using FoodEstablishment.Api.Enums;
 
 namespace FoodEstablishment.Api.DTOs;
 
-public class ReceiptStatusUpdateRequest
+public record ReceiptStatusUpdateRequest
 {
-    public PaymentStatusType PaymentStatus { get; set; }
+    public PaymentStatusType PaymentStatus { get; init; }
 }

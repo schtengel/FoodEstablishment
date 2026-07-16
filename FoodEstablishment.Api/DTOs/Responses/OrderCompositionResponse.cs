@@ -1,8 +1,8 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class OrderCompositionResponse
+public record OrderCompositionResponse
 {
-    public int ProductId { get; set; }
-    public int Quantity { get; set; }
-    public decimal PriceAtOrderTime { get; set; }
+    public int ProductId { get; init; }
+    public int Quantity { get; init; }
+    public decimal PriceAtOrderTime { get; init; }
 }

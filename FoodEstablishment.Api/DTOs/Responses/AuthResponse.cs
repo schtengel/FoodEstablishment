@@ -1,8 +1,8 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class AuthResponse
+public record AuthResponse
 {
-    public string Token { get; set; } = string.Empty;
-    public string Username { get; set; } = string.Empty;
-    public int BonusPoints { get; set; }
+    public string Token { get; init; } = string.Empty;
+    public string Username { get; init; } = string.Empty;
+    public int BonusPoints { get; init; }
 }

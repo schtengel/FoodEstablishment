@@ -1,14 +1,14 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class ProductResponse
+public record ProductResponse
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public decimal Price { get; set; }
-    public int VolumeOrWeight { get; set; }
-    public string Unit { get; set; } = string.Empty;
-    public int Calories { get; set; }
-    public bool IsStopListed { get; set; }
-    public int CategoryId { get; set; }
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public int VolumeOrWeight { get; init; }
+    public string Unit { get; init; } = string.Empty;
+    public int Calories { get; init; }
+    public bool IsStopListed { get; init; }
+    public int CategoryId { get; init; }
 }

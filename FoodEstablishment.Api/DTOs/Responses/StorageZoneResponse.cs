@@ -1,8 +1,8 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class StorageZoneResponse
+public record StorageZoneResponse
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public decimal RecommendedTemperature { get; set; }
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public decimal RecommendedTemperature { get; init; }
 }

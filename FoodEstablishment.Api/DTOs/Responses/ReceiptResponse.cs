@@ -1,12 +1,12 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class ReceiptResponse
+public record ReceiptResponse
 {
-    public int Id { get; set; }
-    public int OrderId { get; set; }
-    public int PaymentStatusId { get; set; }
-    public string PaymentMethod { get; set; } = string.Empty;
-    public decimal TotalAmount { get; set; }
-    public DateTime? PaidAt { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public int Id { get; init; }
+    public int OrderId { get; init; }
+    public int PaymentStatusId { get; init; }
+    public string PaymentMethod { get; init; } = string.Empty;
+    public decimal TotalAmount { get; init; }
+    public DateTime? PaidAt { get; init; }
+    public DateTime CreatedAt { get; init; }
 }

@@ -1,13 +1,12 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class OrderResponse
+public record OrderResponse
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public int OrderSourceId { get; set; }
-    public int OrderStatusId { get; set; }
-    public DateTime CreatedAt { get; set; }
-
-    public List<OrderCompositionResponse> Items { get; set; } = new();
-    public List<ReceiptResponse> Receipts { get; set; } = new();
+    public int Id { get; init; }
+    public int UserId { get; init; }
+    public int OrderSourceId { get; init; }
+    public int OrderStatusId { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public List<OrderCompositionResponse> Items { get; init; } = new();
+    public List<ReceiptResponse> Receipts { get; init; } = new();
 }

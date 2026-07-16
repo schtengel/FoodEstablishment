@@ -1,6 +1,6 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class SendCodeRequest
+public record SendCodeRequest
 {
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
 }

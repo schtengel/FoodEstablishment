@@ -1,7 +1,7 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class LoginRequest
+public record LoginRequest
 {
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
+    public string Password { get; init; } = string.Empty;
 }

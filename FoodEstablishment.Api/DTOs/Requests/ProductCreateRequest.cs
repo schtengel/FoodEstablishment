@@ -1,23 +1,15 @@
-using System.ComponentModel.DataAnnotations;
 using FoodEstablishment.Api.Enums;
 
 namespace FoodEstablishment.Api.DTOs;
 
-public class ProductCreateRequest
+public record ProductCreateRequest
 {
-    public string Name { get; set; } = string.Empty;
-    
-    public string Description { get; set; } = string.Empty;
-    
-    public int VolumeOrWeight { get; set; }
-
-    public UnitType Unit { get; set; }
-
-    public int Calories { get; set; }
-
-    public decimal Price { get; set; }
-
-    public int CategoryId { get; set; }
-
-    public bool IsStopListed { get; set; } = false;
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public int VolumeOrWeight { get; init; }
+    public UnitType Unit { get; init; }
+    public int Calories { get; init; }
+    public decimal Price { get; init; }
+    public int CategoryId { get; init; }
+    public bool IsStopListed { get; init; } = false;
 }

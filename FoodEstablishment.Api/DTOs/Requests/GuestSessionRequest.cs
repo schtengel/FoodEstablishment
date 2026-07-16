@@ -1,6 +1,6 @@
 namespace FoodEstablishment.Api.DTOs;
 
-public class GuestSessionRequest
+public record GuestSessionRequest
 {
-    public string? DeviceId { get; set; } = string.Empty;
+    public string? DeviceId { get; init; } = string.Empty;
 }

@@ -2,9 +2,9 @@ using FoodEstablishment.Api.Enums;
 
 namespace FoodEstablishment.Api.DTOs;
 
-public class OrderCreateRequest
+public record OrderCreateRequest
 {
-    public int OrderSourceId { get; set; }
-    public PaymentMethodType PaymentMethod { get; set; }
-    public List<OrderItemCreateRequest> Items { get; set; } = new();
+    public int OrderSourceId { get; init; }
+    public PaymentMethodType PaymentMethod { get; init; }
+    public List<OrderItemCreateRequest> Items { get; init; } = new();
 }
