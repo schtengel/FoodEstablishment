@@ -87,6 +87,93 @@ public class OrdersController(
         await _orderRepository.AddAsync(order);
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, MapToResponse(order));
     }
+    
+    [HttpPatch("{id}/start-progress")]
+    [Authorize(Roles = "Manager,Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> StartProgress(int id)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null) return NotFound();
+    
+        if (order.OrderStatusId != (int)OrderStatusType.Created)
+            return BadRequest("В работу можно взять только заказ в статусе \"Создан\".");
+    
+        var isPaid = order.Receipts.Any(r => r.PaymentStatusId == (int)PaymentStatusType.Paid);
+        if (!isPaid)
+            return BadRequest("Заказ ещё не оплачен, взять в работу нельзя.");
+    
+        order.OrderStatusId = (int)OrderStatusType.InProgress;
+        await _orderRepository.UpdateAsync(order);
+    
+        return NoContent();
+    }
+    
+    [HttpPatch("{id}/mark-ready")]
+    [Authorize(Roles = "Manager,Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MarkReady(int id)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null) return NotFound();
+    
+        if (order.OrderStatusId != (int)OrderStatusType.InProgress)
+            return BadRequest("Готовым можно пометить только заказ в статусе \"В процессе\".");
+    
+        order.OrderStatusId = (int)OrderStatusType.Ready;
+        await _orderRepository.UpdateAsync(order);
+    
+        return NoContent();
+    }
+    
+    [HttpPatch("{id}/mark-given")]
+    [Authorize(Roles = "Manager,Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> MarkGiven(int id)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null) return NotFound();
+    
+        if (order.OrderStatusId != (int)OrderStatusType.Ready)
+            return BadRequest("Выдать можно только заказ в статусе \"Готов\".");
+
+        order.OrderStatusId = (int)OrderStatusType.Given;
+        await _orderRepository.UpdateAsync(order);
+    
+        return NoContent();
+    }
+
+    [HttpPatch("{id}/cancel")]
+    [Authorize(Roles = "Manager,Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Cancel(int id)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null) return NotFound();
+    
+        var cancellableStatuses = new[]
+        {
+            (int)OrderStatusType.Created,
+            (int)OrderStatusType.InProgress,
+            (int)OrderStatusType.Ready
+        };
+    
+        if (!cancellableStatuses.Contains(order.OrderStatusId))
+            return BadRequest("Этот заказ уже нельзя отменить (уже выдан или отменён).");
+    
+        order.OrderStatusId = (int)OrderStatusType.Cancelled;
+        await _orderRepository.UpdateAsync(order);
+    
+        return NoContent();
+    }
 
     private static OrderResponse MapToResponse(Order order) => new()
     {
