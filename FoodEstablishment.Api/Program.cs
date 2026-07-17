@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+const string DevCorsPolicy = "DevCors";
 
 // Add services to the container.
 
@@ -34,6 +35,18 @@ builder.Services.AddHostedService<OrderAutoCancellationService>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<ProductCreateRequestValidator>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(DevCorsPolicy, policy =>
+    {
+        policy
+            .SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
 
 var jwtSecret = builder.Configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret is missing");
 builder.Services.AddAuthentication(options =>
@@ -74,6 +87,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
+app.UseCors(DevCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
