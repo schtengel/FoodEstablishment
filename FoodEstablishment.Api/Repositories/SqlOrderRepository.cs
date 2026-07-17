@@ -11,6 +11,9 @@ public class SqlOrderRepository(ApplicationDbContext context) : IOrderRepository
     {
         return await context.Orders
             .Include(o => o.OrderCompositions)
+                .ThenInclude(oc => oc.Product)
+                    .ThenInclude(oc => oc.ProductCompositions)
+                        .ThenInclude(oc => oc.Ingredient)
             .Include(o => o.Receipts)
             .FirstOrDefaultAsync(o => o.Id == id);
     }

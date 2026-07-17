@@ -143,6 +143,14 @@ public class OrdersController(
         if (order.OrderStatusId != (int)OrderStatusType.Ready)
             return BadRequest("Выдать можно только заказ в статусе \"Готов\".");
 
+        foreach (var orderComposition in order.OrderCompositions)
+        {
+            foreach (var productComposition in orderComposition.Product.ProductCompositions)
+            {
+                productComposition.Ingredient.StockQuantity -= productComposition.Quantity * orderComposition.Quantity;
+            }
+        }
+
         order.OrderStatusId = (int)OrderStatusType.Given;
         await _orderRepository.UpdateAsync(order);
     
