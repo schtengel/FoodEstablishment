@@ -14,6 +14,9 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly TokenService _tokenService = tokenService;
+    
+    private const int MaxVerificationAttempts = 5;
+    private static readonly TimeSpan VerificationLockoutDuration = TimeSpan.FromMinutes(15);
 
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
@@ -51,7 +54,11 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
         return Ok(new AuthResponse { Token = token, Username = user.Username, BonusPoints = user.BonusPoints });
     }
 
+    private static readonly TimeSpan SendCodeCooldown = TimeSpan.FromSeconds(60);
+
     [HttpPost("send-code")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> SendCode([FromBody] SendCodeRequest request)
     {
         var user = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber);
@@ -66,35 +73,66 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
             };
             await _userRepository.AddAsync(user);
         }
-        
+
+        if (user.VerificationCodeSentAt.HasValue &&
+            DateTime.UtcNow - user.VerificationCodeSentAt.Value < SendCodeCooldown)
+        {
+            var wait = SendCodeCooldown - (DateTime.UtcNow - user.VerificationCodeSentAt.Value);
+            return StatusCode(StatusCodes.Status429TooManyRequests,
+                new { message = $"Повторный запрос кода будет доступен через {Math.Ceiling(wait.TotalSeconds)} сек." });
+        }
+
         var randomCode = new Random().Next(1000, 9999).ToString();
 
         user.VerificationCode = randomCode;
         user.VerificationCodeExpiresAt = DateTime.UtcNow.AddMinutes(5);
+        user.VerificationCodeSentAt = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(user);
 
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine($"\n[SMS SERVICE] Код подтверждения для {request.PhoneNumber}: {randomCode}");
         Console.ResetColor();
-        
-        return Ok(new { message = "Код подтверждения успешно отправлен."});
+
+        return Ok(new { message = "Код подтверждения успешно отправлен." });
     }
 
     [HttpPost("verify-code")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> VerifyCode([FromBody] VerifyCodeRequest request)
     {
         var user = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber);
-        if (user == null || user.VerificationCode != request.Code)
-            return BadRequest(new { message = "Неверный или просроченный код подтверждения.." });
+        if (user == null)
+            return BadRequest(new { message = "Неверный или просроченный код подтверждения." });
 
-        if (user.VerificationCodeExpiresAt < DateTime.UtcNow)
-            return BadRequest(new { message = "Срок действия кода подтверждения истек." });
+        if (user.VerificationLockedUntil.HasValue && user.VerificationLockedUntil > DateTime.UtcNow)
+        {
+            var remaining = (user.VerificationLockedUntil.Value - DateTime.UtcNow).TotalMinutes;
+            return StatusCode(StatusCodes.Status429TooManyRequests,
+                new { message = $"Слишком много неверных попыток. Повторите через {Math.Ceiling(remaining)} мин." });
+        }
+
+        if (user.VerificationCode != request.Code || user.VerificationCodeExpiresAt < DateTime.UtcNow)
+        {
+            user.VerificationAttempts++;
+
+            if (user.VerificationAttempts >= MaxVerificationAttempts)
+            {
+                user.VerificationLockedUntil = DateTime.UtcNow.Add(VerificationLockoutDuration);
+                user.VerificationAttempts = 0;
+            }
+
+            await _userRepository.UpdateAsync(user);
+            return BadRequest(new { message = "Неверный или просроченный код подтверждения." });
+        }
 
         user.VerificationCode = null;
         user.VerificationCodeExpiresAt = null;
+        user.VerificationAttempts = 0;
+        user.VerificationLockedUntil = null;
+
         await _userRepository.UpdateAsync(user);
 
         var token = _tokenService.GenerateToken(user);

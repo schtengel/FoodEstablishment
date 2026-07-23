@@ -16,6 +16,10 @@ public class User : BaseEntity
 
     public UserRoleType Role { get; set; } = UserRoleType.Client;
     
+    public int VerificationAttempts { get; set; } = 0;
+    public DateTime? VerificationLockedUntil { get; set; }
+    public DateTime? VerificationCodeSentAt { get; set; }
+    
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 
 }
