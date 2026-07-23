@@ -3,6 +3,7 @@ using FoodEstablishment.Api.Entities;
 using FoodEstablishment.Api.Enums;
 using FoodEstablishment.Api.Repositories;
 using FoodEstablishment.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoodEstablishment.Api.Controllers;
@@ -123,5 +124,37 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
         
         var token = _tokenService.GenerateToken(guest);
         return Ok(new AuthResponse{ Token = token, Username = guest.Username, BonusPoints = guest.BonusPoints });
+    }
+    
+    [HttpPost("create-terminal")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TerminalResponse))]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateTerminal([FromBody] TerminalCreateRequest request)
+    {
+        var existing = await _userRepository.GetByDeviceIdAsync(request.DeviceId);
+        if (existing != null)
+            return Conflict($"Учётная запись с идентификатором устройства \"{request.DeviceId}\" уже существует.");
+
+        var terminal = new User
+        {
+            Username = request.Username,
+            PhoneNumber = null,
+            PasswordHash = null,
+            BonusPoints = 0,
+            DeviceId = request.DeviceId,
+            Role = UserRoleType.Terminal
+        };
+
+        await _userRepository.AddAsync(terminal);
+
+        var response = new TerminalResponse
+        {
+            Id = terminal.Id,
+            Username = terminal.Username,
+            DeviceId = terminal.DeviceId
+        };
+
+        return StatusCode(StatusCodes.Status201Created, response);
     }
 }
