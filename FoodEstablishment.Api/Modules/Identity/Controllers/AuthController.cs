@@ -2,8 +2,8 @@ using FoodEstablishment.Api.Modules.Identity.DTOs.Requests;
 using FoodEstablishment.Api.Modules.Identity.DTOs.Responses;
 using FoodEstablishment.Api.Modules.Identity.Entities;
 using FoodEstablishment.Api.Modules.Identity.Enums;
+using FoodEstablishment.Api.Modules.Identity.Repositories.Interfaces;
 using FoodEstablishment.Api.Modules.Identity.Services;
-using FoodEstablishment.Api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

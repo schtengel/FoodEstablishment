@@ -1,7 +1,6 @@
 using FoodEstablishment.Api.Data;
 using FoodEstablishment.Api.Modules.Menu.Entities;
 using FoodEstablishment.Api.Modules.Menu.Repositories.Interfaces;
-using FoodEstablishment.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoodEstablishment.Api.Modules.Menu.Repositories;

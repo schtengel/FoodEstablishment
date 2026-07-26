@@ -1,7 +1,7 @@
 using FluentValidation;
 using FoodEstablishment.Api.Modules.Orders.DTOs.Requests;
 
-namespace FoodEstablishment.Api.DTOs.Validators;
+namespace FoodEstablishment.Api.Modules.Orders.DTOs.Validators;
 
 public class OrderCreateRequestValidator : AbstractValidator<OrderCreateRequest>
 {

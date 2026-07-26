@@ -3,7 +3,6 @@ using FoodEstablishment.Api.Modules.Inventory.DTOs.Requests;
 using FoodEstablishment.Api.Modules.Inventory.DTOs.Responses;
 using FoodEstablishment.Api.Modules.Inventory.Entities;
 using FoodEstablishment.Api.Modules.Inventory.Repositories.Interfaces;
-using FoodEstablishment.Api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

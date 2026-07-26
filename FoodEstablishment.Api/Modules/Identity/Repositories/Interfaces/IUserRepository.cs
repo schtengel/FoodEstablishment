@@ -1,6 +1,6 @@
 using FoodEstablishment.Api.Modules.Identity.Entities;
 
-namespace FoodEstablishment.Api.Repositories;
+namespace FoodEstablishment.Api.Modules.Identity.Repositories.Interfaces;
 
 public interface IUserRepository
 {

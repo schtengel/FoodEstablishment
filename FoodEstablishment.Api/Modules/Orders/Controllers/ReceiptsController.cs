@@ -5,7 +5,6 @@ using FoodEstablishment.Api.Modules.Orders.DTOs.Responses;
 using FoodEstablishment.Api.Modules.Orders.Entities;
 using FoodEstablishment.Api.Modules.Orders.Enums;
 using FoodEstablishment.Api.Modules.Orders.Repositories.Interfaces;
-using FoodEstablishment.Api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,6 +1,5 @@
 using FoodEstablishment.Api.Modules.Orders.Enums;
 using FoodEstablishment.Api.Modules.Orders.Repositories.Interfaces;
-using FoodEstablishment.Api.Repositories;
 
 namespace FoodEstablishment.Api.Modules.Orders.Services;
 
