@@ -1,5 +1,8 @@
 using System.Linq.Expressions;
-using FoodEstablishment.Api.Entities;
+using FoodEstablishment.Api.Modules.Identity.Entities;
+using FoodEstablishment.Api.Modules.Inventory.Entities;
+using FoodEstablishment.Api.Modules.Menu.Entities;
+using FoodEstablishment.Api.Modules.Orders.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoodEstablishment.Api.Data;

@@ -20,4 +20,9 @@
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Modules\Identity\" />
+      <Folder Include="Modules\Inventory\Enums\" />
+    </ItemGroup>
+
 </Project>
