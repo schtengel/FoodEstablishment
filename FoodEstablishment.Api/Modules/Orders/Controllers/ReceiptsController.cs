@@ -1,5 +1,4 @@
 using FoodEstablishment.Api.Common.Extensions;
-using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Modules.Orders.DTOs.Requests;
 using FoodEstablishment.Api.Modules.Orders.DTOs.Responses;
 using FoodEstablishment.Api.Modules.Orders.Entities;

@@ -1,5 +1,4 @@
 using FoodEstablishment.Api.Common.Extensions;
-using FoodEstablishment.Api.DTOs;
 using FoodEstablishment.Api.Modules.Identity.Repositories.Interfaces;
 using FoodEstablishment.Api.Modules.Menu.Repositories.Interfaces;
 using FoodEstablishment.Api.Modules.Orders.DTOs.Requests;
@@ -7,6 +6,7 @@ using FoodEstablishment.Api.Modules.Orders.DTOs.Responses;
 using FoodEstablishment.Api.Modules.Orders.Entities;
 using FoodEstablishment.Api.Modules.Orders.Enums;
 using FoodEstablishment.Api.Modules.Orders.Repositories.Interfaces;
+using FoodEstablishment.Api.Modules.Orders.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,11 +18,13 @@ namespace FoodEstablishment.Api.Modules.Orders.Controllers;
 public class OrdersController(
     IOrderRepository orderRepository,
     IUserRepository userRepository,
-    IProductRepository productRepository) : ControllerBase
+    IProductRepository productRepository,
+    IReceiptRepository receiptRepository) : ControllerBase
 {
     private readonly IOrderRepository _orderRepository =  orderRepository;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IProductRepository _productRepository =  productRepository;
+    private readonly IReceiptRepository _receiptRepository =  receiptRepository;
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderResponse))]
@@ -159,6 +161,31 @@ public class OrdersController(
         await _orderRepository.UpdateAsync(order);
     
         return NoContent();
+    }
+
+    [HttpPatch("Receipts/{id}/status")]
+    [Authorize(Roles = "Manager,Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStatus(int id, [FromBody] ReceiptStatusUpdateRequest request)
+    {
+        var receipt = await _receiptRepository.GetByIdAsync(id);
+        if(receipt == null) return NotFound();
+        
+        var currentStatus = (PaymentStatusType) receipt.PaymentStatusId;
+
+        if (!PaymentStatusTransitions.IsAllowed(currentStatus, request.PaymentStatus))
+            return BadRequest($"Переход из статуса \"{currentStatus}\" в \"{request.PaymentStatus}\" недопустим.");
+        
+        receipt.PaymentStatusId = (int)request.PaymentStatus;
+        
+        if(request.PaymentStatus == PaymentStatusType.Paid)
+            receipt.PaidAt = DateTime.UtcNow;
+        
+        await _receiptRepository.UpdateAsync(receipt);
+        
+        return NoContent(); 
     }
 
     [HttpPatch("{id}/cancel")]
