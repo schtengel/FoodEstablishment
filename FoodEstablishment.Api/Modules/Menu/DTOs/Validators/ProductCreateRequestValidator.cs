@@ -1,5 +1,5 @@
 using FluentValidation;
-using FoodEstablishment.Api.DTOs;
+
 using FoodEstablishment.Api.Modules.Menu.DTOs.Requests;
 
 namespace FoodEstablishment.Api.Modules.Menu.DTOs.Validators;
