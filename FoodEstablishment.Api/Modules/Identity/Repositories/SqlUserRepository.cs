@@ -1,5 +1,6 @@
 using FoodEstablishment.Api.Data;
 using FoodEstablishment.Api.Modules.Identity.Entities;
+using FoodEstablishment.Api.Modules.Identity.Enums;
 using FoodEstablishment.Api.Modules.Identity.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,13 +10,16 @@ public class SqlUserRepository(ApplicationDbContext context) : IUserRepository
 {
     public async Task<User?> GetByIdAsync(int id) =>
         await context.Users.FirstOrDefaultAsync(u => u.Id == id);
-    
+
     public async Task<User?> GetByPhoneNumberAsync(string phoneNumber) =>
         await context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
 
-    public async Task<User?> GetByDeviceIdAsync(string deviceId) => 
+    public async Task<User?> GetByDeviceIdAsync(string deviceId) =>
         await context.Users.FirstOrDefaultAsync(u => u.DeviceId == deviceId);
-    
+
+    public async Task<int> CountByRoleAsync(UserRoleType role) =>
+        await context.Users.CountAsync(u => u.Role == role);
+
     public async Task AddAsync(User user)
     {
         await context.Users.AddAsync(user);

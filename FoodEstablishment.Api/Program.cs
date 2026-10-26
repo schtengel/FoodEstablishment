@@ -20,11 +20,9 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 const string DevCorsPolicy = "DevCors";
 
-// Add services to the container.
-
 builder.Services.AddProblemDetails();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); // Строка подключения из appsettings.Development.json
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
@@ -37,6 +35,10 @@ builder.Services.AddScoped<IIngredientRepository, SqlIngredientRepository>();
 builder.Services.AddScoped<IProductCompositionRepository, SqlProductCompositionRepository>();
 builder.Services.AddScoped<IOrderRepository, SqlOrderRepository>();
 builder.Services.AddScoped<IReceiptRepository, SqlReceiptRepository>();
+
+builder.Services.Configure<AdminSeedOptions>(
+    builder.Configuration.GetSection(AdminSeedOptions.SectionName));
+builder.Services.AddScoped<AdminUserSeeder>();
 
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddHostedService<OrderAutoCancellationService>();
@@ -78,7 +80,6 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddOpenApi();
 
-// Все зависимости регистрируем до вызова
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -88,7 +89,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("openapi/v1.json", "FoodEstablishment API v1");
-        
+
         options.RoutePrefix = string.Empty;
     });
 }
@@ -100,4 +101,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<AdminUserSeeder>();
+    await seeder.SeedAsync();
+}
+
+await app.RunAsync();
