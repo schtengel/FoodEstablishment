@@ -15,9 +15,6 @@ public class IngredientCreateRequestValidator : AbstractValidator<IngredientCrea
             .NotEmpty().WithMessage("Единица измерения обязательна.")
             .MaximumLength(10).WithMessage("Единица измерения не должна превышать 10 символов.");
 
-        RuleFor(x => x.StockQuantity)
-            .GreaterThanOrEqualTo(0).WithMessage("Количество на складе не может быть отрицательным.");
-
         RuleFor(x => x.StorageZoneId)
             .GreaterThan(0).WithMessage("Необходимо указать зону хранения.");
     }

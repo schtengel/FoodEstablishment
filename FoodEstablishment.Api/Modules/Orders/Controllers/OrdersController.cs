@@ -141,24 +141,15 @@ public class OrdersController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> MarkGiven(int id)
     {
-        var order = await _orderRepository.GetByIdAsync(id);
-        if (order == null) return NotFound();
+        var result = await _orderRepository.TryMarkGivenAsync(id);
 
-        if (order.OrderStatusId != (int)OrderStatusType.Ready)
-            return BadRequest("Выдать можно только заказ в статусе \"Готов\".");
-
-        foreach (var orderComposition in order.OrderCompositions)
+        return result switch
         {
-            foreach (var productComposition in orderComposition.Product.ProductCompositions)
-            {
-                productComposition.Ingredient.StockQuantity -= productComposition.Quantity * orderComposition.Quantity;
-            }
-        }
-
-        order.OrderStatusId = (int)OrderStatusType.Given;
-        await _orderRepository.UpdateAsync(order);
-
-        return NoContent();
+            MarkGivenResult.Success => NoContent(),
+            MarkGivenResult.NotFound => NotFound(),
+            MarkGivenResult.Rejected rejected => BadRequest(rejected.Message),
+            _ => throw new InvalidOperationException("Неизвестный результат выдачи заказа.")
+        };
     }
 
     [HttpPatch("{id}/cancel")]
