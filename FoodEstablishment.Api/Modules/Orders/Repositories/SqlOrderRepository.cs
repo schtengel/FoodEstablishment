@@ -141,4 +141,17 @@ public class SqlOrderRepository(ApplicationDbContext context) : IOrderRepository
         await using var reader = await command.ExecuteReaderAsync();
         return await reader.ReadAsync();
     }
+    
+    public async Task<IReadOnlyList<Order>> GetQueueAsync(IReadOnlyCollection<OrderStatusType> statuses)
+    {
+        var statusIds = statuses.Select(status => (int)status).ToArray();
+
+        return await context.Orders
+            .Include(order => order.OrderCompositions)
+            .ThenInclude(line => line.Product)
+            .Include(order => order.Receipts)
+            .Where(order => statusIds.Contains(order.OrderStatusId))
+            .OrderBy(order => order.CreatedAt)
+            .ToListAsync();
+    }
 }

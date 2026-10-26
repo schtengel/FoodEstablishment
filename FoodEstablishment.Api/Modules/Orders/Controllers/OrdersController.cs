@@ -38,6 +38,24 @@ public class OrdersController(
 
         return Ok(MapToResponse(order));
     }
+    
+    [HttpGet]
+    [Authorize(Roles = "Manager,Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyList<OrderResponse>))]
+    public async Task<IActionResult> GetQueue([FromQuery] OrderStatusType[]? status)
+    {
+        var statuses = status is { Length: > 0 }
+            ? status.Distinct().ToArray()
+            : new[]
+            {
+                OrderStatusType.Created,
+                OrderStatusType.InProgress,
+                OrderStatusType.Ready,
+            };
+
+        var orders = await _orderRepository.GetQueueAsync(statuses);
+        return Ok(orders.Select(MapToResponse).ToList());
+    }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(OrderResponse))]
@@ -186,21 +204,22 @@ public class OrdersController(
         OrderSourceId = order.OrderSourceId,
         OrderStatusId = order.OrderStatusId,
         CreatedAt = order.CreatedAt,
-        Items = order.OrderCompositions.Select(oc => new OrderCompositionResponse
+        Items = order.OrderCompositions.Select(line => new OrderCompositionResponse
         {
-            ProductId = oc.ProductId,
-            Quantity = oc.Quantity,
-            PriceAtOrderTime = oc.PriceAtOrderTime
+            ProductId = line.ProductId,
+            ProductName = line.Product?.Name ?? "Блюдо удалено",
+            Quantity = line.Quantity,
+            PriceAtOrderTime = line.PriceAtOrderTime
         }).ToList(),
-        Receipts = order.Receipts.Select(r => new ReceiptResponse
+        Receipts = order.Receipts.Select(receipt => new ReceiptResponse
         {
-            Id = r.Id,
-            OrderId = r.OrderId,
-            PaymentStatusId = r.PaymentStatusId,
-            PaymentMethod = r.PaymentMethod.ToString(),
-            TotalAmount = order.OrderCompositions.Sum(oc => oc.Quantity * oc.PriceAtOrderTime),
-            PaidAt = r.PaidAt,
-            CreatedAt = r.CreatedAt
+            Id = receipt.Id,
+            OrderId = receipt.OrderId,
+            PaymentStatusId = receipt.PaymentStatusId,
+            PaymentMethod = receipt.PaymentMethod.ToString(),
+            TotalAmount = order.OrderCompositions.Sum(line => line.Quantity * line.PriceAtOrderTime),
+            PaidAt = receipt.PaidAt,
+            CreatedAt = receipt.CreatedAt
         }).ToList()
     };
 }
