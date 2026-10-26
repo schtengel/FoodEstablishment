@@ -15,7 +15,7 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly TokenService _tokenService = tokenService;
-    
+
     private const int MaxVerificationAttempts = 5;
     private static readonly TimeSpan VerificationLockoutDuration = TimeSpan.FromMinutes(15);
 
@@ -25,7 +25,7 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var existingUser = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber);
-        if(existingUser != null) return BadRequest(
+        if (existingUser != null) return BadRequest(
             new { message = "Пользователь с таким номером телефона уже существует." });
 
         var newUser = new User
@@ -48,11 +48,26 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
     public async Task<IActionResult> LoginPassword([FromBody] LoginRequest request)
     {
         var user = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber);
-        if (user == null || string.IsNullOrEmpty(user.PasswordHash))
+        if (user == null || !IsPasswordValid(user.PasswordHash, request.Password))
             return Unauthorized(new { message = "Неверный номер телефона или пароль." });
 
         var token = _tokenService.GenerateToken(user);
         return Ok(new AuthResponse { Token = token, Username = user.Username, BonusPoints = user.BonusPoints });
+    }
+
+    private static bool IsPasswordValid(string? passwordHash, string password)
+    {
+        if (string.IsNullOrEmpty(passwordHash))
+            return false;
+
+        try
+        {
+            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+        }
+        catch (BCrypt.Net.SaltParseException)
+        {
+            return false;
+        }
     }
 
     private static readonly TimeSpan SendCodeCooldown = TimeSpan.FromSeconds(60);
@@ -157,14 +172,14 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
                 DeviceId = request.DeviceId,
                 Role = UserRoleType.Guest
             };
-            
+
             await _userRepository.AddAsync(guest);
         }
-        
+
         var token = _tokenService.GenerateToken(guest);
-        return Ok(new AuthResponse{ Token = token, Username = guest.Username, BonusPoints = guest.BonusPoints });
+        return Ok(new AuthResponse { Token = token, Username = guest.Username, BonusPoints = guest.BonusPoints });
     }
-    
+
     [HttpPost("create-terminal")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TerminalResponse))]
