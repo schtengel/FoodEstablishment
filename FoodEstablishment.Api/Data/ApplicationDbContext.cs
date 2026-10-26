@@ -57,6 +57,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasIndex(u => u.DeviceId)
             .IsUnique();
         
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.DeviceId)
+            .IsUnique();
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.PhoneNumber)
+            .IsUnique();
+        
         modelBuilder.Entity<Ingredient>()
             .HasOne(x => x.StorageZone)
             .WithMany(x => x.Ingredients)

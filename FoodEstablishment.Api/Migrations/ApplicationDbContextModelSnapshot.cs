@@ -612,6 +612,9 @@ namespace FoodEstablishment.Api.Migrations
                     b.HasIndex("DeviceId")
                         .IsUnique();
 
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
                     b.ToTable("users");
                 });
 

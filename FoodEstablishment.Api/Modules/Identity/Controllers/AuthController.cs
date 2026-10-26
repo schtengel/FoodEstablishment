@@ -1,3 +1,4 @@
+using FoodEstablishment.Api.Common;
 using FoodEstablishment.Api.Modules.Identity.DTOs.Requests;
 using FoodEstablishment.Api.Modules.Identity.DTOs.Responses;
 using FoodEstablishment.Api.Modules.Identity.Entities;
@@ -6,6 +7,7 @@ using FoodEstablishment.Api.Modules.Identity.Repositories.Interfaces;
 using FoodEstablishment.Api.Modules.Identity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FoodEstablishment.Api.Modules.Identity.Controllers;
 
@@ -18,6 +20,7 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
 
     private const int MaxVerificationAttempts = 5;
     private static readonly TimeSpan VerificationLockoutDuration = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan SendCodeCooldown = TimeSpan.FromSeconds(60);
 
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
@@ -25,8 +28,8 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var existingUser = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber);
-        if (existingUser != null) return BadRequest(
-            new { message = "Пользователь с таким номером телефона уже существует." });
+        if (existingUser != null)
+            return BadRequest(new { message = "Пользователь с таким номером телефона уже существует." });
 
         var newUser = new User
         {
@@ -36,7 +39,14 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
             BonusPoints = 0
         };
 
-        await _userRepository.AddAsync(newUser);
+        try
+        {
+            await _userRepository.AddAsync(newUser);
+        }
+        catch (DbUpdateException ex) when (DatabaseExceptions.IsUniqueViolation(ex))
+        {
+            return BadRequest(new { message = "Пользователь с таким номером телефона уже существует." });
+        }
 
         var token = _tokenService.GenerateToken(newUser);
         return Ok(new AuthResponse { Token = token, Username = newUser.Username, BonusPoints = newUser.BonusPoints });
@@ -70,10 +80,9 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
         }
     }
 
-    private static readonly TimeSpan SendCodeCooldown = TimeSpan.FromSeconds(60);
-
     [HttpPost("send-code")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> SendCode([FromBody] SendCodeRequest request)
     {
@@ -87,7 +96,17 @@ public class AuthController(IUserRepository userRepository, TokenService tokenSe
                 PhoneNumber = request.PhoneNumber,
                 BonusPoints = 0
             };
-            await _userRepository.AddAsync(user);
+
+            try
+            {
+                await _userRepository.AddAsync(user);
+            }
+            catch (DbUpdateException ex) when (DatabaseExceptions.IsUniqueViolation(ex))
+            {
+                user = await _userRepository.GetByPhoneNumberAsync(request.PhoneNumber);
+                if (user == null)
+                    return BadRequest(new { message = "Пользователь с таким номером телефона уже существует." });
+            }
         }
 
         if (user.VerificationCodeSentAt.HasValue &&
