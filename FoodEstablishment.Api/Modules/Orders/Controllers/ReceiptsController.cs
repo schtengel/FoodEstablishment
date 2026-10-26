@@ -4,6 +4,7 @@ using FoodEstablishment.Api.Modules.Orders.DTOs.Responses;
 using FoodEstablishment.Api.Modules.Orders.Entities;
 using FoodEstablishment.Api.Modules.Orders.Enums;
 using FoodEstablishment.Api.Modules.Orders.Repositories.Interfaces;
+using FoodEstablishment.Api.Modules.Orders.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,9 @@ public class ReceiptsController(
         var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
         if (!isPrivileged && order.UserId != User.GetUserId())
             return NotFound($"Заказ с Id = {orderId} не найден.");
+
+        if (order.OrderStatusId == (int)OrderStatusType.Cancelled)
+            return BadRequest("Нельзя создать чек для отменённого заказа.");
 
         var existingReceipts = await _receiptRepository.GetByOrderIdAsync(orderId);
         if (existingReceipts.Any(r => r.PaymentStatusId == (int)PaymentStatusType.Paid))
@@ -72,6 +76,14 @@ public class ReceiptsController(
     {
         var receipt = await _receiptRepository.GetByIdAsync(id);
         if (receipt == null) return NotFound();
+
+        if (receipt.Order.OrderStatusId == (int)OrderStatusType.Cancelled &&
+            request.PaymentStatus != PaymentStatusType.Cancelled)
+            return BadRequest("Заказ отменён. Оплатить его или продолжить оплату нельзя.");
+
+        var currentStatus = (PaymentStatusType)receipt.PaymentStatusId;
+        if (!PaymentStatusTransitions.IsAllowed(currentStatus, request.PaymentStatus))
+            return BadRequest($"Переход из статуса \"{currentStatus}\" в \"{request.PaymentStatus}\" недопустим.");
 
         receipt.PaymentStatusId = (int)request.PaymentStatus;
 

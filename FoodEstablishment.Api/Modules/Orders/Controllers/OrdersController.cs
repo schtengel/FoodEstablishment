@@ -18,13 +18,11 @@ namespace FoodEstablishment.Api.Modules.Orders.Controllers;
 public class OrdersController(
     IOrderRepository orderRepository,
     IUserRepository userRepository,
-    IProductRepository productRepository,
-    IReceiptRepository receiptRepository) : ControllerBase
+    IProductRepository productRepository) : ControllerBase
 {
-    private readonly IOrderRepository _orderRepository =  orderRepository;
+    private readonly IOrderRepository _orderRepository = orderRepository;
     private readonly IUserRepository _userRepository = userRepository;
-    private readonly IProductRepository _productRepository =  productRepository;
-    private readonly IReceiptRepository _receiptRepository =  receiptRepository;
+    private readonly IProductRepository _productRepository = productRepository;
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OrderResponse))]
@@ -40,7 +38,7 @@ public class OrdersController(
 
         return Ok(MapToResponse(order));
     }
-    
+
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(OrderResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -73,7 +71,7 @@ public class OrdersController(
                 PriceAtOrderTime = product.Price
             });
         }
-        
+
         var order = new Order
         {
             UserId = userId,
@@ -89,11 +87,11 @@ public class OrdersController(
                 }
             }
         };
-        
+
         await _orderRepository.AddAsync(order);
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, MapToResponse(order));
     }
-    
+
     [HttpPatch("{id}/start-progress")]
     [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -103,20 +101,20 @@ public class OrdersController(
     {
         var order = await _orderRepository.GetByIdAsync(id);
         if (order == null) return NotFound();
-    
+
         if (order.OrderStatusId != (int)OrderStatusType.Created)
             return BadRequest("В работу можно взять только заказ в статусе \"Создан\".");
-    
+
         var isPaid = order.Receipts.Any(r => r.PaymentStatusId == (int)PaymentStatusType.Paid);
         if (!isPaid)
             return BadRequest("Заказ ещё не оплачен, взять в работу нельзя.");
-    
+
         order.OrderStatusId = (int)OrderStatusType.InProgress;
         await _orderRepository.UpdateAsync(order);
-    
+
         return NoContent();
     }
-    
+
     [HttpPatch("{id}/mark-ready")]
     [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -126,16 +124,16 @@ public class OrdersController(
     {
         var order = await _orderRepository.GetByIdAsync(id);
         if (order == null) return NotFound();
-    
+
         if (order.OrderStatusId != (int)OrderStatusType.InProgress)
             return BadRequest("Готовым можно пометить только заказ в статусе \"В процессе\".");
-    
+
         order.OrderStatusId = (int)OrderStatusType.Ready;
         await _orderRepository.UpdateAsync(order);
-    
+
         return NoContent();
     }
-    
+
     [HttpPatch("{id}/mark-given")]
     [Authorize(Roles = "Manager,Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -145,7 +143,7 @@ public class OrdersController(
     {
         var order = await _orderRepository.GetByIdAsync(id);
         if (order == null) return NotFound();
-    
+
         if (order.OrderStatusId != (int)OrderStatusType.Ready)
             return BadRequest("Выдать можно только заказ в статусе \"Готов\".");
 
@@ -159,33 +157,8 @@ public class OrdersController(
 
         order.OrderStatusId = (int)OrderStatusType.Given;
         await _orderRepository.UpdateAsync(order);
-    
+
         return NoContent();
-    }
-
-    [HttpPatch("Receipts/{id}/status")]
-    [Authorize(Roles = "Manager,Admin")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] ReceiptStatusUpdateRequest request)
-    {
-        var receipt = await _receiptRepository.GetByIdAsync(id);
-        if(receipt == null) return NotFound();
-        
-        var currentStatus = (PaymentStatusType) receipt.PaymentStatusId;
-
-        if (!PaymentStatusTransitions.IsAllowed(currentStatus, request.PaymentStatus))
-            return BadRequest($"Переход из статуса \"{currentStatus}\" в \"{request.PaymentStatus}\" недопустим.");
-        
-        receipt.PaymentStatusId = (int)request.PaymentStatus;
-        
-        if(request.PaymentStatus == PaymentStatusType.Paid)
-            receipt.PaidAt = DateTime.UtcNow;
-        
-        await _receiptRepository.UpdateAsync(receipt);
-        
-        return NoContent(); 
     }
 
     [HttpPatch("{id}/cancel")]
@@ -197,20 +170,21 @@ public class OrdersController(
     {
         var order = await _orderRepository.GetByIdAsync(id);
         if (order == null) return NotFound();
-    
+
         var cancellableStatuses = new[]
         {
             (int)OrderStatusType.Created,
             (int)OrderStatusType.InProgress,
             (int)OrderStatusType.Ready
         };
-    
+
         if (!cancellableStatuses.Contains(order.OrderStatusId))
             return BadRequest("Этот заказ уже нельзя отменить (уже выдан или отменён).");
-    
+
         order.OrderStatusId = (int)OrderStatusType.Cancelled;
+        PaymentStatusTransitions.CancelOpenReceipts(order.Receipts);
         await _orderRepository.UpdateAsync(order);
-    
+
         return NoContent();
     }
 

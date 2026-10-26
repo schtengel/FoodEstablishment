@@ -22,7 +22,7 @@ public class OrderAutoCancellationService(
             {
                 logger.LogError(ex, "Ошибка при автоотмене неоплаченных заказов.");
             }
-            
+
             await Task.Delay(CheckInterval, stoppingToken);
         }
     }
@@ -31,14 +31,15 @@ public class OrderAutoCancellationService(
     {
         using var scope = scopeFactory.CreateScope();
         var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
-        
+
         var expiredOrders = await orderRepository.GetUnpaidExpiredOrdersAsync(UnpaidOrderTimeout);
 
         foreach (var order in expiredOrders)
         {
             order.OrderStatusId = (int)OrderStatusType.Cancelled;
+            PaymentStatusTransitions.CancelOpenReceipts(order.Receipts);
             await orderRepository.UpdateAsync(order);
-            
+
             logger.LogInformation(
                 "Заказ {OrderId} автоматически отменён: не оплачен в течение {Timeout} минут.",
                 order.Id, UnpaidOrderTimeout.TotalMinutes);
